@@ -1,20 +1,16 @@
-from io import BytesIO, BufferedReader
+import subprocess
+import re
 
-# Tạo một buffer chứa dữ liệu byte
-bytes_buffer = BufferedReader(BytesIO(b'Hello, world!'))
+# Ví dụ lệnh OpenSSL để kết nối tới server
+cmd = ['openssl', 's_client', '-connect', 'ghtk.me:443','-msg','-debug']
 
-# Xem trước 5 byte trong buffer mà không di chuyển con trỏ
-peeked_data = bytes_buffer.peek(2)
-print(peeked_data)  # Output: b'Hello'
-# print(bytes_buffer)
-# Kiểm tra vị trí hiện tại của con trỏ
-print(bytes_buffer.tell())  # Output: 0 (vẫn ở đầu buffer vì chưa đọc thực sự)
+# Chạy lệnh và thu thập đầu ra
+result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-# Bây giờ đọc dữ liệu (lúc này con trỏ sẽ di chuyển)
-# read_data = bytes_buffer.read(5)
-peeked_data2 = bytes_buffer.peek(2)
-print(peeked_data2)  
-# print(read_data)  # Output: b'Hello'
+# In kết quả đầu ra của OpenSSL
+print(result.stdout)
 
-# Kiểm tra lại vị trí của con trỏ sau khi đọc
-print(bytes_buffer.tell())  # Output: 5 (đã di chuyển sau khi đọc)
+byte_lines = re.findall(r'([0-9a-f]{2}(?: [0-9a-f]{2})*)', result.stdout)
+# for line in byte_lines:
+#     print(line)
+print(byte_lines)

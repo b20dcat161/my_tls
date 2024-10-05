@@ -10,8 +10,15 @@ from dataclasses import dataclass
 import hashlib
 import hmac
 import struct
+import binascii
 from binascii import hexlify
-
+# TODO: delete
+def hex_to_bytes(hex_string):
+    hex_string = hex_string.replace("\n", "").replace(" ", "")
+    
+    byte_string = binascii.unhexlify(hex_string)
+    
+    return byte_string
 
 def hkdf_extract(salt, ikm, hash_algorithm=hashes.SHA384):
     if not salt:
@@ -56,6 +63,7 @@ class KeyPair:
     
     def calc_hanshake_keys(self, shared_secret: bytes, hello_hash):
         # early_secret = HKDF-Extract(salt: 00, key: 00...)
+        print('hello_hash',hello_hash.hex())
         early_secret = hkdf_extract(b'\x00',b'\x00'*48)
         # empty_hash = SHA384("")
         empty_hash = hashlib.sha384(b'').digest()
@@ -76,7 +84,7 @@ class KeyPair:
         s_hs_key = hkdf_expand_label(server_secret, b'key', b'', 32)
         c_hs_iv = hkdf_expand_label(client_secret, b'iv', b'', 12)
         s_hs_iv = hkdf_expand_label(server_secret, b'iv', b'', 12)
-        # print(c_hs_key, s_hs_key, c_hs_iv, s_hs_iv)
+        print(c_hs_key.hex(), s_hs_key.hex(), c_hs_iv.hex(), s_hs_iv.hex())
         
         return HandshakeKeys(
             client_key=c_hs_key,
@@ -95,7 +103,7 @@ class KeyPair:
         derived_secret = hkdf_expand_label(handshake_secret, b'derived',empty_hash,48)
         # master_secret = HKDF-Extract(salt: derived_secret, key: 00...)
         master_secret = hkdf_extract(derived_secret,b'\x00'*48)
-        print(master_secret.hex())
+        print('master secret',master_secret.hex())
         # client_secret = HKDF-Expand-Label(key: master_secret, label: "c ap traffic", ctx: handshake_hash, len: 48)
         # server_secret = HKDF-Expand-Label(key: master_secret, label: "s ap traffic", ctx: handshake_hash, len: 48)
         client_secret = hkdf_expand_label(master_secret, b'c ap traffic', handshake_hash, 48)
@@ -126,7 +134,9 @@ class KeyPair:
         return public_bytes
     def exchange(self, peer_pub_key_bytes: bytes) -> bytes:
         peer_pub_key = X25519PublicKey.from_public_bytes(peer_pub_key_bytes)
+        #TODO : change
         shared_key = self.private_key.exchange(peer_pub_key)
+        # shared_key = hex_to_bytes('df4a291baa1eb7cfa6934b29b474baad2697e29f1f920dcc77c8a0a088447624')
         return shared_key
 
 def build_iv(iv, record_num: int):

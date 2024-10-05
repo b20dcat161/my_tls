@@ -28,10 +28,11 @@ def main():
    # hello_msg = hex_to_bytes(data)
    # handshake_hash = hashlib.sha384(hello_msg).digest()
    # print(handshake_hash.hex())
-   # sess.send(
-   # f"PING".encode()
-   # )
-   # res = sess.recv()
-   # print(res.decode())
+   sess.send(
+    f"GET / HTTP/1.1\r\nHost: {HOST}\r\nUser-Agent: curl/7.54.0\r\nAccept: */*\r\n\r\n".encode()
+   )
+   print('send ok......')
+   res = sess.recv()
+   print(res.decode())
 if __name__ == "__main__":
     main()
